@@ -7,6 +7,7 @@ import {
   Grid,
   TextField,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import { LockOutlined } from "@mui/icons-material";
 import { useState } from "react";
@@ -33,9 +34,32 @@ const Register = () => {
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);  // Loading state
+
+  const formatPhoneNumber = (value: string) => {
+    value = value.replace(/\D/g, "");
+
+    // Format the number according to the pattern +7(XXX) XXX-XX-XX
+    if (value.length <= 1) {
+      return `+7(${value}`;
+    } else if (value.length <= 4) {
+      return `+7(${value.substring(1, 4)}`;
+    } else if (value.length <= 7) {
+      return `+7(${value.substring(1, 4)}) ${value.substring(4, 7)}`;
+    } else if (value.length <= 9) {
+      return `+7(${value.substring(1, 4)}) ${value.substring(4, 7)}-${value.substring(7, 9)}`;
+    } else {
+      return `+7(${value.substring(1, 4)}) ${value.substring(4, 7)}-${value.substring(7, 9)}-${value.substring(9, 11)}`;
+    }
+  };
+
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhoneNumber(formatPhoneNumber(e.target.value));
+  };
 
   const handleRegister = async () => {
     if (name && phoneNumber && password) {
+      setLoading(true);  // Set loading to true when the form is submitted
       try {
         await dispatch(
           registerSlice({
@@ -46,9 +70,11 @@ const Register = () => {
         ).unwrap();
       } catch (e) {
         console.error(e);
+      } finally {
+        setLoading(false);  // Set loading to false after response
       }
     } else {
-      console.error("Please enter a name, email, and password");
+      console.error("Please enter a name, phone number, and password");
     }
   };
 
@@ -96,7 +122,7 @@ const Register = () => {
                 <TextField
                   {...register("phoneNumber", {
                     required: true,
-                    maxLength: 15,
+                    maxLength: 17,
                     pattern: /^\+7\(\d{3}\) \d{3}-\d{2}-\d{2}/gs
                   })}
                   required
@@ -105,7 +131,7 @@ const Register = () => {
                   label="Phone Number"
                   name="phoneNumber"
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={handlePhoneNumberChange}
                   error = {errors.phoneNumber ? true : false}
                   helperText = {errors?.phoneNumber?.type === "required" ? "Phone number is required" : 
                                 errors?.phoneNumber?.type === "maxLength" ? "Phone number is too long" :
@@ -139,8 +165,9 @@ const Register = () => {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
               onClick={handleSubmit(handleRegister)}
+              disabled={loading}  // Disable button when loading
             >
-              Register
+              {loading ? <CircularProgress size={24} /> : 'Register'}
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
