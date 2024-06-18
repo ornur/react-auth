@@ -12,10 +12,23 @@ import { LockOutlined } from "@mui/icons-material";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch } from "../hooks/redux-hooks";
-import { register } from "../slices/authSlice";
+import { registerSlice } from "../slices/authSlice";
+import { useForm } from "react-hook-form";
+
+interface IRegister {
+  name: string;
+  phoneNumber: string;
+  password: string;
+}
 
 const Register = () => {
   const dispatch = useAppDispatch();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<IRegister>();
 
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -25,7 +38,7 @@ const Register = () => {
     if (name && phoneNumber && password) {
       try {
         await dispatch(
-          register({
+          registerSlice({
             name,
             phoneNumber,
             password,
@@ -59,6 +72,11 @@ const Register = () => {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
+                  {...register("name", { 
+                    required: true,
+                    maxLength: 50,
+                    pattern: /^[a-zA-Z\s]*$/i
+                  })}
                   name="name"
                   required
                   fullWidth
@@ -67,11 +85,20 @@ const Register = () => {
                   autoFocus
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  error = {errors.name ? true : false}
+                  helperText = {errors?.name?.type === "required" ? "Name is required" : 
+                                errors?.name?.type === "maxLength" ? "Name is too long" :
+                                errors?.name?.type === "pattern" ? "Name can only contain letters" : ""}
                 />
               </Grid>
 
               <Grid item xs={12}>
                 <TextField
+                  {...register("phoneNumber", {
+                    required: true,
+                    maxLength: 15,
+                    pattern: /^\+7\(\d{3}\) \d{3}-\d{2}-\d{2}/gs
+                  })}
                   required
                   fullWidth
                   id="phoneNumber"
@@ -79,10 +106,19 @@ const Register = () => {
                   name="phoneNumber"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
+                  error = {errors.phoneNumber ? true : false}
+                  helperText = {errors?.phoneNumber?.type === "required" ? "Phone number is required" : 
+                                errors?.phoneNumber?.type === "maxLength" ? "Phone number is too long" :
+                                errors?.phoneNumber?.type === "pattern" ? "The phone number can only be digits" : ""}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
+                  {...register("password", {
+                    required: true,
+                    maxLength: 15,
+                    pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/gs
+                  })}
                   required
                   fullWidth
                   name="password"
@@ -91,6 +127,10 @@ const Register = () => {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  error = {errors.password ? true : false}
+                  helperText = {errors?.password?.type === "required" ? "Password is required" : 
+                                errors?.password?.type === "maxLength" ? "Password is too long" :
+                                errors?.password?.type === "pattern" ? "Password must contain at least 8 characters, including letters and numbers" : ""}
                 />
               </Grid>
             </Grid>
@@ -98,7 +138,7 @@ const Register = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              onClick={handleRegister}
+              onClick={handleSubmit(handleRegister)}
             >
               Register
             </Button>

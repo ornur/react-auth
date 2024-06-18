@@ -19,6 +19,14 @@ body {
   min-width: 320px;
 }
 
+p {
+  color: #bf1650;
+}
+
+p::before {
+  display: inline;
+  content: "⚠ ";
+}
 
 @media (prefers-color-scheme: light) {
   :root {

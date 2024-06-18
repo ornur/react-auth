@@ -13,12 +13,24 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch } from "../hooks/redux-hooks";
 import { login } from "../slices/authSlice";
+import { useForm } from "react-hook-form";
+
+interface ILogin {
+  phoneNumber: string;
+  password: string;
+}
 
 const Login = () => {
   const dispatch = useAppDispatch();
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: {errors}
+    } = useForm<ILogin>();
 
   const handleLogin = async () => {
     if (phoneNumber && password) {
@@ -54,8 +66,12 @@ const Login = () => {
           <Typography variant="h5">Login</Typography>
           <Box sx={{ mt: 1 }}>
             <TextField
+              {...register("phoneNumber", {
+                required: true,
+                maxLength: 15,
+                pattern: /^\+7\(\d{3}\) \d{3}-\d{2}-\d{2}/gs
+              })}
               margin="normal"
-              required
               fullWidth
               id="phoneNumber"
               label="Phone Number"
@@ -63,9 +79,18 @@ const Login = () => {
               autoFocus
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
+              error={errors?.phoneNumber ? true : false}
+              helperText={errors?.phoneNumber?.type === "required" ? "Phone number is required" : 
+                          errors?.phoneNumber?.type === "maxLength" ? "Phone number is too long" : 
+                          errors?.phoneNumber?.type === "pattern" ? "The phone number can only be digits" : ""}
             />
 
             <TextField
+              {...register("password", { 
+                required: true,
+                maxLength: 15,
+                pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/gs
+              })}
               margin="normal"
               required
               fullWidth
@@ -77,13 +102,17 @@ const Login = () => {
               onChange={(e) => {
                 setPassword(e.target.value);
               }}
+              error={errors?.password ? true : false}
+              helperText={errors?.password?.type === "required" ? "Password is required" : 
+                          errors?.password?.type === "maxLength" ? "Password is too long" : 
+                          errors?.password?.type === "pattern" ? "Password must contain at least 8 characters, including letters and numbers" : ""}
             />
 
             <Button
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              onClick={handleLogin}
+              onClick={handleSubmit(handleLogin)}
             >
               Login
             </Button>
